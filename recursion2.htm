@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+
+<script src="./lib/slib.js"></script>
+
+<script>
+
+function cl(arg) {
+    console.log(arg);
+}
+
+
+/**
+ * По поводу рекурсии нужно усвоить три момента:
+ *
+ * Во-первых, должно быть условие окончания рекурсии. То есть в какой-то момент нужно остановиться и начать
+ * подъем вверх.
+ *
+ * Во-вторых, каждая итерация должна вычислять свой результат. То есть должна быть точка, когда
+ * результат на этом уровне вложенности достигнут и зафиксирован.
+ *
+ * В-третьих, нужно осознать, что каждая итерация - это независимое выполнение. То есть текущая итерация
+ * работу сделала, свой результат зафиксировала и вызвала следующую итерацию, которая вычислит свой результат и т.д.
+ *
+ 
+ */
+
+
+function seqSum(n){
+    /* Окончание рекурсии */
+    if(n == 1) return 1;
+
+    /* Фиксация результата своей текущей итерации - это n 
+     * и вызов следующей итерации
+     */
+    return n + seqSum(n - 1);
+}
+
+//cl(seqSum(5));
+
+
+
+/**
+ * Спускаемся вниз, и снизу раскручиваем умножение.
+ * Основная особенность - выполняем действие с возвращенным результатом
+ */
+
+
+function factUp(n) {
+    return (n == 1) ? n : n * factUp(n-1);
+}
+
+/**
+ * Умножаем сверху вниз.
+ * Здесь другая особенность - не выполняем дополнительных действий с 
+ * возвращаемым результатом, но приходится создавать доп функцию: go.
+ * Можно и без go, но тогда у factDown должно быть два аргумента:
+ * число, для которого вычисляем факториал и аккумулятор.
+ 
+ */
+
+function factDown(n) {
+
+    function go(_n, a) {
+	/* cl(["_n=", _n, ", a=", a].join(" ")); */
+	return (_n == 1) ? a : go(_n - 1, a * _n);
+    }
+    return go(n, 1);
+}
+
+/**
+ * Числа Фибоначи, в которых каждое последующее число равно сумме двух предыдущих чисел. Сама последовательность
+ * начинается с 0, 1.
+ *
+ *
+ * 0, 1, 1, 2, 3, 5, 8, 13, 21...
+ *
+ * Если посмотреть на последовательность, то видно что каждое последующее равно сумме текущего и предыдущего. На
+ * этом и построена рекурсия.
+ *
+ */
+function fiban(n) {
+    var arr = [0];
+    
+    function go(_n, prev) {
+	if(_n != n){
+	    /* cl("_n " + _n + ",  " + prev); */
+	    
+	    /* next = last        + before_last  */
+	    arr[_n] = arr[_n - 1] + prev;
+	    go(_n + 1, arr[_n - 1]);
+	}
+	else return;
+    }
+    go(1, 1);
+
+    return arr;
+}
+
+function first(a){
+    return a[0];
+}
+function second(a){
+    return (a.length > 1) ? a[1] : [];
+}
+function rest(a){
+    return (a.length > 1) ? a.slice(1) : [];
+}
+function isEmpty(a){
+    return a.length == 0;
+}
+function cat(head, tail){
+    return head.concat(tail);
+}
+
+
+var ttt = [1,2,2,45,65,43, 'test'];
+//cl(contains(ttt, 'test1'));
+
+
+var influences = [
+    ['Lisp', 'Smalltalk'],
+    ['Lisp', 'Scheme'],
+    ['Smalltalk', 'Self'],
+    ['Scheme', 'JavaScript'],
+    ['Scheme', 'Lua'],
+    ['Self', 'Lua'],
+    ['Self', 'JavaScript']];
+
+function finder(graph, node) {
+
+    /* Точка выхода из рекурсии*/
+    if(isEmpty(graph)) return [];
+
+    var vector 	= first(graph);
+    var from 	= first(vector);
+    var to 	= second(vector);
+
+    var more = rest(graph); /* cl(more); */
+
+    /* Вычисляем результат текущей итерации */
+    if(node == from) {
+	/* Результат есть, фиксируем в cat([to]...*/
+	/* И на следующую итерацию*/
+	return cat([to], finder(more, node));
+    }
+    else 
+	/* Текущая итерация без результата, идем на следующую */
+	return finder(more, node);
+}
+
+//cl(finder(influences, 'Lisp'));
+var nexts =  finder;
+
+function walkThrough(graph, nodes, history){
+
+    /* Точка выхода из рекурсии */
+    if(isEmpty(graph)) return [];
+    
+    var vector 	= first(graph); 	//cl(vector);
+    var from 	= first(vector);	//cl(from);
+    var to 	= second(vector);	//cl(to);
+    var more = rest(graph);
+    
+    /* Вычисляем результат текущей итерации */
+    if(from == nodes[nodes.length - 1]) {
+	return cat(nodes, walkThrough(more, to, history));
+    }
+    else
+	return walkThrough(more, to, history);
+}
+//cl(walkThrough(influences, ['Lisp'], []));
+
+
+function depthSearch(graph, nodes, seen) {
+//    __.cl("graph:", graph);
+    __.cl("nodes:", nodes);
+    __.cl("seen:", seen);
+
+    if (__.isEmpty(nodes)) return seen;
+
+    var node = __.first(nodes);
+    var more = __.rest(nodes);
+
+    if (__.contains(seen, node))
+	return depthSearch(graph, more, seen);
+    else
+	return depthSearch(graph, __.cat(finder(graph, node), more), __.construct(node, seen));
+}
+
+//cl(depthSearch(influences, ['Lisp'], []));
+//depthSearch(influences, ['Lisp'], []);
+
+__.cl(__.construct("test", "abc"), "");
+
+function testArr() {
+    __.cl(__.isIndexed([1,2,3]));
+    __.cl(__.isIndexed(arguments));
+	
+	
+}
+
+testArr(1, 34, "fdgfg");
+
+__.cl(__.range(5));
+
+
+
+
+</script>
+</body>
+</html>
+
