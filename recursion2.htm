@@ -132,7 +132,7 @@ var influences = [
 function finder(graph, node) {
 
     /* Точка выхода из рекурсии*/
-    if(isEmpty(graph)) return [];
+    if(__.isEmpty(graph)) return [];
 
     var vector 	= first(graph);
     var from 	= first(vector);
@@ -142,44 +142,39 @@ function finder(graph, node) {
 
     /* Вычисляем результат текущей итерации */
     if(node == from) {
-	/* Результат есть, фиксируем в cat([to]...*/
+	/* Результат есть, фиксируем в __.construct(to,...*/
 	/* И на следующую итерацию*/
-	return cat([to], finder(more, node));
+	return __.construct(to, finder(more, node));
     }
     else 
 	/* Текущая итерация без результата, идем на следующую */
 	return finder(more, node);
 }
-
-//cl(finder(influences, 'Lisp'));
-var nexts =  finder;
-
-function walkThrough(graph, nodes, history){
-
-    /* Точка выхода из рекурсии */
-    if(isEmpty(graph)) return [];
-    
-    var vector 	= first(graph); 	//cl(vector);
-    var from 	= first(vector);	//cl(from);
-    var to 	= second(vector);	//cl(to);
-    var more = rest(graph);
-    
-    /* Вычисляем результат текущей итерации */
-    if(from == nodes[nodes.length - 1]) {
-	return cat(nodes, walkThrough(more, to, history));
-    }
-    else
-	return walkThrough(more, to, history);
-}
-//cl(walkThrough(influences, ['Lisp'], []));
+cl(finder(influences, 'Lisp'));
 
 
+/**
+ * @graph - общий граф в виде массива пар связей
+ * @nodes - ноды, которые нужно просмотреть. Добавляются и удаляются в процессе работы
+ * @seen - ноды, которые уже посетили
+ *
+ *
+ * На каждой итерации функция попадает в очередную ноду (первый элемент массива nodes).
+ * Здесь уже были (contains in seen) ?
+ *	Да: продолжить осмотр нод по списку more
+ *	Нет: получить "детей" текущей ноды, зепрепендить их в more и дальше на осмотр
+ *
+ * Кода достигаем узла Lua, то связь родитель->наследник прерывается, новые элементы в nodes
+ * не добавляем, а просматриваем имеющиеся 
+ */
 function depthSearch(graph, nodes, seen) {
-//    __.cl("graph:", graph);
-    __.cl("nodes:", nodes);
-    __.cl("seen:", seen);
+    if(__.deb) {
+	__.cl("\nnodes:", nodes);
+	__.cl("seen:", seen);
+    }
 
-    if (__.isEmpty(nodes)) return seen;
+    /* Посетили каждую ноду. Можно уходить*/
+    if (__.isEmpty(nodes)) return __.rev(seen);
 
     var node = __.first(nodes);
     var more = __.rest(nodes);
@@ -189,24 +184,46 @@ function depthSearch(graph, nodes, seen) {
     else
 	return depthSearch(graph, __.cat(finder(graph, node), more), __.construct(node, seen));
 }
-
 //cl(depthSearch(influences, ['Lisp'], []));
-//depthSearch(influences, ['Lisp'], []);
 
-__.cl(__.construct("test", "abc"), "");
 
-function testArr() {
-    __.cl(__.isIndexed([1,2,3]));
-    __.cl(__.isIndexed(arguments));
-	
-	
+/**
+ * 
+
+flatten( [[1,2],[3,4]] )
+
+    cat( in [[1,2],[3,4]]
+     map( [[1,2],[3,4]] )
+     map => flatten( [1,2] )
+	cat( in [1,2]
+	 map( [1,2] )
+	 map => flatten(1), return [1]
+	 map => flatten(2), return [2]
+	cat( out [1,2]
+     map => flatten( [3,4] )
+	cat( in [3,4]
+	 map => flatten(3), return [3]
+	 map => flatten(4), return [4]
+	cat( out [3,4]
+    cat(out [1,2,3,4]
+    
+    Задача алгоритма - рекурсивно "расщепить" все массивы, включая вложенные, до одноэлементных массивов,
+    которые потом функция cat соберет в единый одномерный массив. То есть cat передает в map массив, а map
+    возвращает массив одноэлементных массивов вот так [1,2,3] => [[1], [2], [3]].
+ 
+ */
+ 
+
+
+function flatten(arr){
+    if(__.isArrayLike(arr))
+	return __.cat.apply(null, __.map(arr, flatten));
+    else 
+	return [arr];
+
 }
-
-testArr(1, 34, "fdgfg");
-
-__.cl(__.range(5));
-
-
+__.cl(flatten([[1,2],[3,4]]));
+//__.cl(flatten([[10,20], [30,["a", "test"], 40]]));
 
 
 </script>

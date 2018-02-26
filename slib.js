@@ -7,6 +7,9 @@
 var root = this;
 var _ = root.__ = new Object();
 
+_.version = "v0.2_180220";
+_.deb = true;
+
 /****************************************************************************************
  * Comparators
  */
@@ -34,9 +37,26 @@ _.existy = function(val) {
     return val != null;
 }
 
+_.noExisty = function(val) {return !_.existy(val)};
+
+/***********************************************************************************
+ * MATH
+ */
+
+/**
+ * Наибольший общий делитель
+ */
+
+_.gcd = function (a, b) {
+    
+    /* The first arg should not be less than second one */
+    if(a < b) return _.gcd (b, a);
+
+    return b == 0 ? a : _.gcd(b, a % b);
+}
+
 
 /************************************************************************************/
-
 
 /**
  *
@@ -169,28 +189,30 @@ _.rest = function(arr){
 
 /**
  * Generate array
+ * https://stackoverflow.com/questions/20333654/array-map-doesnt-seem-to-work-on-uninitialized-arrays
  */
 _.range = function(n) {
-//    var arr = [];
 
-//    if (n > 0){
-//		for(i = 0; i < _.abs(n); i++) arr[i] = i;
-//    }
-//    return arr;
-	
-//	var arr = new Array(n);
-	//return Array.prototype.map.call(new Array(_.abs(n)), function(curr, i, a){ return a[i] = i })
-	return (new Array(_.abs(n))).map(function(curr, i, a){ 
-										_.cl(i, "");
-										return a[i] = i; })
-	
+    /* map doesn't work on uninitialized arrays */
+    /* return (new Array(_.abs(n))).map(function(v, i, a){ return i; }) */
+
+    return Array.apply(null, {length: _.abs(n)}).map(function(v, i) { return i + 1 });
 }
+
+
+/**
+ *
+ */
+_.rev = function(arr) {
+    return _.toArray(arr).reverse();
+}
+
 
 /**
  *
  */
 _.map = function(arr, fun) {
-    return arr.map(fun);
+    return _.toArray(arr).map(fun);
 }
 
 /**
@@ -201,16 +223,60 @@ _.contains = function(arr, pattern) {
     if(_.isArrayLike(arr) && _.noEmpty(pattern)) {
        
 	return arr.reduce(function(){
-		    var acc = arguments[0];		/* accumulator */
-		    var curr = arguments[1];	/* next element */
-			
+		var acc = arguments[0];		/* accumulator */
+		var curr = arguments[1];	/* next element */
+
 	    	return acc || (curr === pattern);
 	    },
-		false);
+	    false);
     }
     else
-		return _.existy(arr[pattern]);
+	return _.existy(arr[pattern]);
 }
+
+/**
+ * 
+
+flat( [[1,2],[3,4]] )
+
+    cat( in [[1,2],[3,4]]
+     map( [[1,2],[3,4]] )
+     map => flat( [1,2] )
+	cat( in [1,2]
+	 map( [1,2] )
+	 map => flat(1), return [1]
+	 map => flat(2), return [2]
+	cat( out [[1], [2]] -> [1,2]
+     map => flat( [3,4] )
+	cat( in [3,4]
+	 map => flat(3), return [3]
+	 map => flat(4), return [4]
+	cat( out [3],[4] -> [3,4]
+    cat(out [[1,2],[3,4]] -> [1,2,3,4]
+    
+    Задача алгоритма - рекурсивно "расщепить" все массивы, включая вложенные, до одноэлементных массивов,
+    которые потом функция cat соберет в единый одномерный массив. То есть cat передает в map массив, а map
+    возвращает массив одноэлементных массивов вот так [1,2,3] => [[1], [2], [3]].
+ 
+ */
+
+_.flat = function (arr){
+    /* Got array ? Split it further*/
+    if(__.isArrayLike(arr))
+	return __.cat.apply(null, __.map(arr, flatten));
+    /* Standalone element. Return it */
+    else 
+	return [arr];
+}
+
+/************************************************************************************/
+
+_.repeat = function (times, fun) {
+    return _.map(_.range(times), fun);
+}
+
+
+
 
 
 })();
